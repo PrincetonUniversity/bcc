@@ -18,7 +18,7 @@ from compilationException import *
 
 
 class EbpfProgram(object):
-    def __init__(self, name, hlir, isRouter, config):
+    def __init__(self, name, hlir, isRouter, config, basePort, portCount):
         """Representation of an EbpfProgram (in fact, 
         a C program that is converted to EBPF)"""
         assert isinstance(hlir, HLIR)
@@ -30,6 +30,8 @@ class EbpfProgram(object):
         self.uniqueNameCounter = 0
         self.config = config
         self.isRouter = isRouter
+        self.basePort = basePort
+        self.portCount = portCount
         self.reservedPrefix = "ebpf_"
 
         assert isinstance(config, target.TargetConfig)
@@ -137,6 +139,12 @@ class EbpfProgram(object):
     def isArrayElementInstance(headerInstance):
         assert isinstance(headerInstance, p4_header_instance)
         return headerInstance.max_index is not None
+    
+    def hasIntrinsicMetadata():
+        for h in self.metadata:
+            if h.name == "intrinsic_metadata":
+                return True; 
+        return False;
 
     def emitWarning(self, formatString, *message):
         assert isinstance(formatString, str)
@@ -196,16 +204,44 @@ class EbpfProgram(object):
             serializer.newline()
         elif isinstance(self.config, target.BccConfig):
             if self.isRouter:
-                serializer.appendFormat("if (!{0})", self.dropBit)
-                serializer.newline()
+                serializer.appendFormat("if (!{0}) ", self.dropBit)
+                serializer.appendLine("{")
                 serializer.increaseIndent()
+                
+                if self.hasIntrinsicMetadata:
+                    serializer.emitIndent()
+                    serializer.appendFormat("if ({0}.intrinsic_metadata.mcast_grp == 1) ", 
+                                            self.metadataStructName)
+                    serializer.appendLine("{")
+                    serializer.increaseIndent()
+                    
+                    for i in range(self.portCount):
+                        serializer.emitIndent()
+                        serializer.appendFormat("if ({0}.standard_metadata.{1} != {2})", 
+                                                self.metadataStructName, self.ingressPortName,
+                                                self.basePort + i)
+                        serializer.newline()
+                        serializer.increaseIndent()
+                        serializer.emitIndent()
+                        serializer.appendFormat("bpf_clone_redirect({0}, {1}, 0);",
+                                                self.packetName, self.basePort + i)
+                        serializer.newline()       
+                        serializer.decreaseIndent()
+                    
+                    serializer.decreaseIndent()     
+                    serializer.emitIndent()
+                    serializer.appendLine("} else")
+                
                 serializer.emitIndent()
                 serializer.appendFormat(
                     "bpf_clone_redirect({0}, {1}.standard_metadata.{2}, 0);",
                     self.packetName, self.metadataStructName,
-                    self.egressPortName)
-                serializer.newline()
+                    self.egressPortName)                
                 serializer.decreaseIndent()
+                serializer.newline()                
+                serializer.emitIndent()
+                serializer.appendLine("}")
+                serializer.newline()
 
                 serializer.emitIndent()
                 serializer.appendLine(

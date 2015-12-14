@@ -86,7 +86,7 @@ def compileP4(inputFile, gen_file, isRouter, preprocessor_args):
         basename = os.path.splitext(basename)[0]
 
         config = target.BccConfig()
-        e = EbpfProgram(basename, h, isRouter, config)
+        e = EbpfProgram(basename, h, isRouter, config, 4, 6)
         serializer = ProgramSerializer()
         e.toC(serializer)
         f = open(gen_file, 'w')
