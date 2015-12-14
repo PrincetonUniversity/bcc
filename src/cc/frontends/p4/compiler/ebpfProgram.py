@@ -140,7 +140,7 @@ class EbpfProgram(object):
         assert isinstance(headerInstance, p4_header_instance)
         return headerInstance.max_index is not None
     
-    def hasIntrinsicMetadata():
+    def hasIntrinsicMetadata(self):
         for h in self.metadata:
             if h.name == "intrinsic_metadata":
                 return True; 
@@ -208,7 +208,7 @@ class EbpfProgram(object):
                 serializer.appendLine("{")
                 serializer.increaseIndent()
                 
-                if self.hasIntrinsicMetadata:
+                if self.hasIntrinsicMetadata():
                     serializer.emitIndent()
                     serializer.appendFormat("if ({0}.intrinsic_metadata.mcast_grp == 1) ", 
                                             self.metadataStructName)
