@@ -34,6 +34,9 @@ pushd build
 make install/strip DESTDIR=%{buildroot}
 
 %changelog
+* Sun Nov 29 2015 Brenden Blanco <bblanco@plumgrid.com> - 0.1.3-1
+- Add bcc-tools package
+
 * Mon Oct 12 2015 Brenden Blanco <bblanco@plumgrid.com> - 0.1.2-1
 - Add better version numbering into libbcc.so
 
@@ -48,13 +51,21 @@ Shared Library for BPF Compiler Collection (BCC)
 
 %package -n libbcc-examples
 Summary: Examples for BPF Compiler Collection (BCC)
+Requires: libbcc
 %description -n libbcc-examples
 Examples for BPF Compiler Collection (BCC)
 
 %package -n python-bcc
 Summary: Python bindings for BPF Compiler Collection (BCC)
+Requires: libbcc
 %description -n python-bcc
 Python bindings for BPF Compiler Collection (BCC)
+
+%package -n bcc-tools
+Summary: Command line tools for BPF Compiler Collection (BCC)
+Requires: python-bcc
+%description -n bcc-tools
+Command line tools for BPF Compiler Collection (BCC)
 
 %files -n python-bcc
 %{python_sitelib}/bcc*
@@ -72,3 +83,7 @@ Python bindings for BPF Compiler Collection (BCC)
 %exclude /usr/share/bcc/examples/*/*.pyo
 %exclude /usr/share/bcc/examples/*/*/*.pyc
 %exclude /usr/share/bcc/examples/*/*/*.pyo
+
+%files -n bcc-tools
+/usr/share/bcc/tools/*
+/usr/share/bcc/man/*

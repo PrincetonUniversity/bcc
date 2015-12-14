@@ -22,3 +22,8 @@ Package: python-bcc
 Architecture: all
 Depends: libbcc, python
 Description: Python wrappers for BPF Compiler Collection (BCC)
+
+Package: bcc-tools
+Architecture: all
+Depends: python-bcc
+Description: Command line tools for BPF Compiler Collection (BCC)
