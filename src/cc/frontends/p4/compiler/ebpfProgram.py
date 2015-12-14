@@ -44,6 +44,7 @@ class EbpfProgram(object):
 
         self.errorName = self.reservedPrefix + "error"
         self.functionName = self.reservedPrefix + "filter"
+        self.ingressPortName = "ingress_port" # Hardwired in P4 definition
         self.egressPortName = "egress_port" # Hardwired in P4 definition
 
         self.typeFactory = typeFactory.EbpfTypeFactory(config)
@@ -169,8 +170,13 @@ class EbpfProgram(object):
         serializer.endOfStatement(True)
 
         self.createLocalVariables(serializer)
+        serializer.newline()
         
-        self.generateInitializations(serializer)
+        serializer.emitIndent()
+        serializer.appendFormat(
+                    "{0}.standard_metadata.{1} = {2}->ifindex;",
+                    self.metadataStructName, self.ingressPortName,
+                    self.packetName)
         serializer.newline()
 
         serializer.emitIndent()
@@ -383,14 +389,7 @@ class EbpfProgram(object):
             serializer.appendFormat(
                 "{0}8 {0} = 0;", self.config.uprefix, h.indexVar)
             serializer.newline()
-            
-    def generateInitializations(self, serializer):
-        assert isinstance(serializer, programSerializer.ProgramSerializer)    
-        
-        serializer.emitIndent()
-        serializer.appendFormat("ebpf_metadata.standard_metadata.ingress_port = {0}->ifindex;", self.packetName)
-        serializer.newline()    
-
+       
     def getStackInstance(self, name):
         assert isinstance(name, str)
 
