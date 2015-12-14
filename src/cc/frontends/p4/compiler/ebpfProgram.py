@@ -169,6 +169,8 @@ class EbpfProgram(object):
         serializer.endOfStatement(True)
 
         self.createLocalVariables(serializer)
+        
+        self.generateInitializations(serializer)
         serializer.newline()
 
         serializer.emitIndent()
@@ -381,6 +383,13 @@ class EbpfProgram(object):
             serializer.appendFormat(
                 "{0}8 {0} = 0;", self.config.uprefix, h.indexVar)
             serializer.newline()
+            
+    def generateInitializations(self, serializer):
+        assert isinstance(serializer, programSerializer.ProgramSerializer)    
+        
+        serializer.emitIndent()
+        serializer.appendFormat("ebpf_metadata.standard_metadata.ingress_port = {0}->ifindex;", self.packetName)
+        serializer.newline()    
 
     def getStackInstance(self, name):
         assert isinstance(name, str)
