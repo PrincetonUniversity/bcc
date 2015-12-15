@@ -195,7 +195,6 @@ class EbpfProgram(object):
         
         serializer.emitIndent()
         serializer.appendLine("end:")
-        self.generateDeparser(serializer)
         
         serializer.emitIndent()
         if isinstance(self.config, target.KernelSamplesConfig):
@@ -206,6 +205,7 @@ class EbpfProgram(object):
                 serializer.appendFormat("if (!{0}) ", self.dropBit)
                 serializer.appendLine("{")
                 serializer.increaseIndent()
+                self.generateDeparser(serializer)
                 
                 if self.hasIntrinsicMetadata():
                     serializer.emitIndent()
