@@ -192,13 +192,12 @@ class EbpfProgram(object):
 
         self.generateParser(serializer)
         self.generatePipeline(serializer)
-
-        self.generateDeparser(serializer)
-
+        
         serializer.emitIndent()
         serializer.appendLine("end:")
+        self.generateDeparser(serializer)
+        
         serializer.emitIndent()
-
         if isinstance(self.config, target.KernelSamplesConfig):
             serializer.appendFormat("return {0};", self.dropBit)
             serializer.newline()
