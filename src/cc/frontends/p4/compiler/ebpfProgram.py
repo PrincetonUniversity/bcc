@@ -158,6 +158,8 @@ class EbpfProgram(object):
         self.generateTypes(serializer)
         self.generateTables(serializer)
 
+        
+
         serializer.newline()
         serializer.emitIndent()
         self.config.serializeCodeSection(serializer)
@@ -203,16 +205,14 @@ class EbpfProgram(object):
         elif isinstance(self.config, target.BccConfig):
             if self.isRouter:
                 serializer.appendFormat("if (!{0}) ", self.dropBit)
-                serializer.appendLine("{")
-                serializer.increaseIndent()
+                serializer.blockStart()
                 self.generateDeparser(serializer)
                 
                 if self.hasIntrinsicMetadata():
                     serializer.emitIndent()
                     serializer.appendFormat("if ({0}.intrinsic_metadata.mcast_grp == 1) ", 
                                             self.metadataStructName)
-                    serializer.appendLine("{")
-                    serializer.increaseIndent()
+                    serializer.blockStart()
                     
                     for i in range(self.portCount):
                         serializer.emitIndent()
@@ -227,19 +227,18 @@ class EbpfProgram(object):
                         serializer.newline()       
                         serializer.decreaseIndent()
                     
-                    serializer.decreaseIndent()     
+                    serializer.blockEnd(True)     
                     serializer.emitIndent()
-                    serializer.appendLine("} else")
+                    serializer.appendLine("else")
                 
                 serializer.emitIndent()
                 serializer.appendFormat(
                     "bpf_clone_redirect({0}, {1}.standard_metadata.{2}, 0);",
                     self.packetName, self.metadataStructName,
-                    self.egressPortName)                
-                serializer.decreaseIndent()
-                serializer.newline()                
+                    self.egressPortName)   
+                serializer.newline()   
+                serializer.blockEnd(True)             
                 serializer.emitIndent()
-                serializer.appendLine("}")
                 serializer.newline()
 
                 serializer.emitIndent()
