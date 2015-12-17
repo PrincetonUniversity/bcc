@@ -158,8 +158,6 @@ class EbpfProgram(object):
         self.generateTypes(serializer)
         self.generateTables(serializer)
 
-        
-
         serializer.newline()
         serializer.emitIndent()
         self.config.serializeCodeSection(serializer)
@@ -182,11 +180,19 @@ class EbpfProgram(object):
         self.createLocalVariables(serializer)
         serializer.newline()
         
+        i = 0;
+        for i in range(self.portCount - 1):
+            serializer.emitIndent()
+            serializer.appendFormat(
+                    "if ({0}->ifindex == {1}) {2}.standard_metadata.{3} = {1}; else",
+                    self.packetName, self.basePort + i,
+                    self.metadataStructName, self.ingressPortName)
+            serializer.newline()
         serializer.emitIndent()
         serializer.appendFormat(
-                    "{0}.standard_metadata.{1} = {2}->ifindex;",
-                    self.metadataStructName, self.ingressPortName,
-                    self.packetName)
+                "if ({0}->ifindex == {1}) {2}.standard_metadata.{3} = {1};",
+                self.packetName, self.basePort + i + 1,
+                self.metadataStructName, self.ingressPortName)
         serializer.newline()
 
         serializer.emitIndent()
